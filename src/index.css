@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@keyframes loading-bar {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+.animate-loading-bar {
+  animation: loading-bar 3s linear infinite;
+  transform-origin: left;
+}
