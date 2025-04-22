@@ -6,16 +6,27 @@ const Card = () => {
   const [progress, setProgress] = useState(0);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+  const [fileName, setFileName] = useState("isi nama file luu"); // State untuk nama file
 
   const handleFilesChange = (e) => {
-    setFileCount(e.target.files.length);
+    const files = Array.from(e.target.files);
+    setSelectedFiles(files);
+    setFileCount(files.length);
+  };
+
+  const handleFileNameChange = (e) => {
+    setFileName(e.target.value);
   };
 
   const handleConvert = async () => {
-    const imageFiles = document.getElementById("imageInput").files;
-
-    if (imageFiles.length === 0) {
+    if (selectedFiles.length === 0) {
       alert("Pilih dulu gambarnya cokkk.");
+      return;
+    }
+
+    if (!fileName.trim()) {
+      alert("Kasih nama dulu untuk file PDF-nya cokkk.");
       return;
     }
 
@@ -25,7 +36,7 @@ const Card = () => {
 
     const startTime = Date.now();
 
-    for (let i = 0; i < imageFiles.length; i++) {
+    for (let i = 0; i < selectedFiles.length; i++) {
       await new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -61,12 +72,12 @@ const Card = () => {
             );
 
             count++;
-            setProgress((count / imageFiles.length) * 100);
+            setProgress((count / selectedFiles.length) * 100);
             resolve();
           };
         };
         reader.onerror = reject;
-        reader.readAsDataURL(imageFiles[i]);
+        reader.readAsDataURL(selectedFiles[i]);
       });
     }
 
@@ -88,10 +99,12 @@ const Card = () => {
 
   const reset = () => {
     document.getElementById("imageInput").value = "";
+    setSelectedFiles([]);
     setFileCount(0);
     setProgress(0);
     setPdfUrl(null);
     setIsLoading(false);
+    setFileName("converted"); // Reset nama file ke default
   };
 
   return (
@@ -136,10 +149,42 @@ const Card = () => {
           </p>
         )}
 
+        {/* Form input untuk nama file - muncul hanya ketika ada gambar yang dipilih */}
+        {fileCount > 0 && (
+          <div className="mb-4">
+            <label
+              htmlFor="fileName"
+              className="block text-gray-300 text-sm mb-1"
+            >
+              Nama File Hasil:
+            </label>
+            <input
+              id="fileName"
+              type="text"
+              value={fileName}
+              onChange={handleFileNameChange}
+              placeholder="Masukkan nama file"
+              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              File akan disimpan sebagai: {fileName}.pdf
+            </p>
+          </div>
+        )}
+
         {/* Loading Bar Animation */}
         {isLoading && (
           <div className="relative w-full max-w-md mx-auto h-2 mb-2 overflow-hidden rounded bg-gray-200">
             <div className="h-full bg-blue-500 animate-loading-bar origin-left" />
+          </div>
+        )}
+        {/* Optional progress bar */}
+        {progress > 0 && progress < 100 && (
+          <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
+            <div
+              className="bg-blue-600 h-3 rounded-full transition-all"
+              style={{ width: `${progress}%` }}
+            ></div>
           </div>
         )}
 
@@ -155,7 +200,7 @@ const Card = () => {
           <>
             <a
               href={pdfUrl}
-              download="converted.pdf"
+              download={`${fileName}.pdf`} // Gunakan nama file yang diinput user
               className="block bg-blue-800 text-white py-2 rounded hover:bg-blue-600 mt-4"
             >
               Download PDF
@@ -167,16 +212,6 @@ const Card = () => {
               Refresh
             </button>
           </>
-        )}
-
-        {/* Optional progress bar */}
-        {progress > 0 && progress < 100 && (
-          <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
-            <div
-              className="bg-blue-600 h-3 rounded-full transition-all"
-              style={{ width: `${progress}%` }}
-            ></div>
-          </div>
         )}
       </div>
       {/* Footer */}
